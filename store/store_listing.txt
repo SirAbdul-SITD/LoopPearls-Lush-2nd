@@ -1,0 +1,39 @@
+═══════════════════════════════════════════
+HUECRAFT — PLAY STORE LISTING
+com.naumanvpt.huecraft
+═══════════════════════════════════════════
+
+APP TITLE (max 50 chars):
+Huecraft: Color Flood Puzzle
+
+SHORT DESCRIPTION (max 80 chars):
+Flood the whole board into one color before you run out of moves! 150 levels.
+
+FULL DESCRIPTION:
+🌊 FLOOD. FILL. CONQUER. 🌊
+
+Starting from the top-left corner, pick a color and your region spreads to swallow every touching cell of that color. Chain your choices to flood the entire board into a single color — before your moves run out.
+
+🎨 HOW TO PLAY
+• Tap a color from the palette
+• Your corner region floods to that color, absorbing neighbors
+• Plan colors that capture the most cells each turn
+• Flood the whole board within the move limit to win
+
+✨ FEATURES
+• 150 levels: 8×8, 11×11 and 14×14 boards with 4–6 colors
+• Every level is winnable within its limit — budget set from a real solve
+• Move counter and live region highlight
+• Bright, satisfying color visuals and a chill ambient soundtrack
+• Haptic feedback
+• 100% offline, no ads, no purchases, zero data collection
+
+🧠 THE FLOOD-IT CLASSIC
+A pure strategy game of expansion and efficiency. Easy to learn, genuinely tricky to master — every move counts, and the tightest solves feel brilliant.
+
+Flood the board. Conquer the colors. 🌊
+
+CATEGORY: Games > Puzzle
+CONTENT RATING: Everyone
+PRICE: Free
+TAGS: flood it, color, fill, flood, strategy, puzzle, brain, expansion, casual, logic
