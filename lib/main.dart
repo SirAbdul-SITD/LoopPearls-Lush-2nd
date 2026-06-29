@@ -15,30 +15,30 @@ void main() async {
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: Color(0xFF14161C),
+    systemNavigationBarColor: Color(0xFF0F1518),
     systemNavigationBarIconBrightness: Brightness.light,
   ));
   await Preferences.instance.init();
   await AudioManager.instance.init();
-  runApp(const HuecraftApp());
+  runApp(const LoopPearlsApp());
 }
 
-class HuecraftApp extends StatelessWidget {
-  const HuecraftApp({super.key});
+class LoopPearlsApp extends StatelessWidget {
+  const LoopPearlsApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => GameState(),
       child: MaterialApp(
-        title: 'Huecraft',
+        title: 'Loop Pearls',
         debugShowCheckedModeBanner: false,
         navigatorObservers: [routeObserver],
         theme: ThemeData.dark().copyWith(
-          scaffoldBackgroundColor: const Color(0xFF14161C),
+          scaffoldBackgroundColor: const Color(0xFF0F1518),
           colorScheme: const ColorScheme.dark(
-            primary: Color(0xFF6CE5B1),
-            surface: Color(0xFF1F232E),
+            primary: Color(0xFF4FD6B8),
+            surface: Color(0xFF182227),
           ),
         ),
         home: const HomeScreen(),

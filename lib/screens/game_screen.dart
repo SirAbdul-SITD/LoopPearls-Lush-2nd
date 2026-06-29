@@ -50,37 +50,57 @@ class _GameScreenState extends State<GameScreen>
             HapticFeedback.heavyImpact();
           }
         }
-        final region = st.floodedCount;
-        final total = st.size * st.size;
         return Stack(children: [
           SafeArea(
             child: Column(children: [
               _hud(st),
-              const SizedBox(height: 4),
-              Text('$region / $total CELLS FLOODED',
-                  style: techno(11, color: kTextDim, letterSpacing: 2)),
+              const SizedBox(height: 2),
+              Text('${st.pearlCount} PEARLS · ONE CLOSED LOOP',
+                  style: techno(10, color: kTextDim, letterSpacing: 2)),
               Expanded(child: Center(child: _board(st))),
+              _legend(),
               const SizedBox(height: 8),
-              _palette(st),
-              const SizedBox(height: 10),
               _bottomBar(st),
               const SizedBox(height: 12),
             ]),
           ),
           if (st.isComplete) _victory(st),
-          if (st.failed && !st.isComplete) _failOverlay(st),
         ]);
       }),
     );
   }
 
+  Widget _legend() => Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _legendItem(kPearlWhite, 'GO STRAIGHT, TURN BESIDE'),
+          const SizedBox(width: 14),
+          _legendItem(kPearlBlack, 'TURN, STRAIGHT BESIDE'),
+        ],
+      );
+
+  Widget _legendItem(Color c, String label) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 13,
+            height: 13,
+            decoration: BoxDecoration(
+                color: c,
+                shape: BoxShape.circle,
+                border: Border.all(color: kTextDim, width: 1)),
+          ),
+          const SizedBox(width: 5),
+          Text(label, style: techno(7.5, color: kTextDim, letterSpacing: 0.8)),
+        ],
+      );
+
   Widget _hud(GameState st) {
-    final dc = st.difficulty == 'Easy'
+    final dc = st.level.difficulty == 'Easy'
         ? kEasyColor
-        : st.difficulty == 'Medium'
+        : st.level.difficulty == 'Medium'
             ? kMediumColor
             : kHardColor;
-    final low = st.movesLeft <= 2;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(children: [
@@ -98,19 +118,16 @@ class _GameScreenState extends State<GameScreen>
         ),
         const Spacer(),
         Column(children: [
-          Text('LEVEL ${st.currentLevelIndex + 1}',
+          Text('LEVEL ${st.level.index + 1}',
               style: techno(14, letterSpacing: 3)),
-          Text(st.difficulty.toUpperCase(),
+          Text(st.level.difficulty.toUpperCase(),
               style: techno(10, color: dc, letterSpacing: 2)),
         ]),
         const Spacer(),
         Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Text('${st.movesLeft}',
-              style: techno(18,
-                  color: low ? kHardColor : kAccent,
-                  weight: FontWeight.w900)),
-          Text('MOVES LEFT',
-              style: techno(8, color: kTextDim, letterSpacing: 1.5)),
+          Text('${st.moves}',
+              style: techno(18, color: kAccent, weight: FontWeight.w900)),
+          Text('MOVES', style: techno(8, color: kTextDim, letterSpacing: 1.5)),
         ]),
       ]),
     );
@@ -118,80 +135,48 @@ class _GameScreenState extends State<GameScreen>
 
   Widget _board(GameState st) {
     final size = MediaQuery.of(context).size;
-    final boardSize = (size.width - 28).clamp(0.0, size.height * 0.52);
+    final boardSize = (size.width - 36).clamp(0.0, size.height * 0.56);
+    final n = st.n;
+    final cell = boardSize / n;
+
+    void hit(Offset p) {
+      // tap near a cell-center lattice edge: snap to nearest center, then pick
+      // the edge toward the nearest adjacent center.
+      final cx = (p.dx - cell / 2) / cell;
+      final cy = (p.dy - cell / 2) / cell;
+      final r = cy.round().clamp(0, n - 1);
+      final c = cx.round().clamp(0, n - 1);
+      final fracX = (p.dx - (c * cell + cell / 2)) / cell;
+      final fracY = (p.dy - (r * cell + cell / 2)) / cell;
+      int a = r * n + c, b;
+      if (fracX.abs() > fracY.abs()) {
+        final nc = (c + (fracX > 0 ? 1 : -1)).clamp(0, n - 1);
+        b = r * n + nc;
+      } else {
+        final nr = (r + (fracY > 0 ? 1 : -1)).clamp(0, n - 1);
+        b = nr * n + c;
+      }
+      if (a == b) return;
+      if (Preferences.instance.isVibrationEnabled()) {
+        HapticFeedback.selectionClick();
+      }
+      st.tapEdge(a, b);
+    }
+
     return Container(
-      width: boardSize + 10,
-      height: boardSize + 10,
-      padding: const EdgeInsets.all(5),
+      width: boardSize + 20,
+      height: boardSize + 20,
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: kSurface,
-        borderRadius: BorderRadius.circular(14),
+        color: kSurface.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: kBorder, width: 1.5),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(9),
+      child: GestureDetector(
+        onTapUp: (d) => hit(d.localPosition),
         child: CustomPaint(
-          size: Size(boardSize, boardSize),
-          painter: BoardPainter(st, st.isComplete ? <int>{} : _regionOf(st)),
-        ),
+            size: Size(boardSize, boardSize), painter: BoardPainter(st)),
       ),
-    );
-  }
-
-  Set<int> _regionOf(GameState st) {
-    // mirror of state._region for highlighting (read-only)
-    final s = st.size;
-    final start = st.cells[0];
-    final seen = <int>{0};
-    final stack = [0];
-    while (stack.isNotEmpty) {
-      final cur = stack.removeLast();
-      final r = cur ~/ s, c = cur % s;
-      for (final n in [
-        if (r > 0) cur - s,
-        if (r < s - 1) cur + s,
-        if (c > 0) cur - 1,
-        if (c < s - 1) cur + 1,
-      ]) {
-        if (!seen.contains(n) && st.cells[n] == start) {
-          seen.add(n);
-          stack.add(n);
-        }
-      }
-    }
-    return seen;
-  }
-
-  Widget _palette(GameState st) {
-    final current = st.cells.isNotEmpty ? st.cells[0] : -1;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        for (int i = 0; i < st.colorCount; i++)
-          GestureDetector(
-            onTap: () {
-              if (Preferences.instance.isVibrationEnabled()) {
-                HapticFeedback.selectionClick();
-              }
-              st.pick(i);
-            },
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 5),
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: kHues[i],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                    color: current == i ? Colors.white : Colors.transparent,
-                    width: 3),
-                boxShadow: current == i
-                    ? [BoxShadow(color: kHues[i].withOpacity(0.6), blurRadius: 12)]
-                    : null,
-              ),
-            ),
-          ),
-      ],
     );
   }
 
@@ -228,44 +213,6 @@ class _GameScreenState extends State<GameScreen>
         ),
       );
 
-  Widget _failOverlay(GameState st) => Container(
-        color: Colors.black.withOpacity(0.80),
-        child: Center(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 36),
-            padding: const EdgeInsets.all(28),
-            decoration: BoxDecoration(
-              color: kSurface,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: kHardColor.withOpacity(0.5), width: 1.5),
-            ),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(Icons.format_color_reset_rounded,
-                  color: kHardColor, size: 42),
-              const SizedBox(height: 14),
-              Text('OUT OF MOVES',
-                  style: techno(17,
-                      color: kHardColor,
-                      weight: FontWeight.w900,
-                      letterSpacing: 3)),
-              const SizedBox(height: 8),
-              Text('${st.floodedCount} / ${st.size * st.size} flooded',
-                  style: techno(11, color: kTextDim, letterSpacing: 1)),
-              const SizedBox(height: 22),
-              Row(mainAxisSize: MainAxisSize.min, children: [
-                _vBtn('LEVELS', Icons.grid_view_rounded, false, () {
-                  Navigator.of(context).pushReplacement(MaterialPageRoute(
-                      builder: (_) => const LevelSelectScreen()));
-                }),
-                const SizedBox(width: 10),
-                _vBtn('RETRY', Icons.refresh_rounded, true,
-                    () => st.restartLevel()),
-              ]),
-            ]),
-          ),
-        ),
-      );
-
   Widget _victory(GameState st) => Container(
         color: Colors.black.withOpacity(0.78),
         child: Center(
@@ -294,17 +241,17 @@ class _GameScreenState extends State<GameScreen>
                     color: kAccent.withOpacity(0.12),
                     border: Border.all(color: kAccent, width: 2),
                   ),
-                  child: const Icon(Icons.palette_rounded,
+                  child: const Icon(Icons.all_inclusive_rounded,
                       color: kAccent, size: 28),
                 ),
                 const SizedBox(height: 16),
-                Text('BOARD CONQUERED',
+                Text('PEARLS THREADED',
                     style: techno(15,
                         color: kAccent,
                         weight: FontWeight.w900,
                         letterSpacing: 3)),
                 const SizedBox(height: 6),
-                Text('${st.moves} MOVES · ${st.movesLeft} TO SPARE',
+                Text('${st.moves} MOVES',
                     style: techno(11, color: kTextDim, letterSpacing: 2)),
                 const SizedBox(height: 20),
                 Row(
@@ -353,27 +300,24 @@ class _GameScreenState extends State<GameScreen>
       GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 18),
+          padding: const EdgeInsets.symmetric(vertical: 13),
           decoration: BoxDecoration(
             gradient: primary
                 ? const LinearGradient(
-                    colors: [Color(0xFF2FA877), Color(0xFF6CE5B1)])
+                    colors: [Color(0xFF2E9E86), Color(0xFF4FD6B8)])
                 : null,
             color: primary ? null : kBg,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
                 color: primary ? kAccent.withOpacity(0.5) : kBorder),
           ),
-          child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, color: primary ? kBg : Colors.white, size: 16),
-                const SizedBox(width: 6),
-                Text(label,
-                    style: techno(12,
-                        color: primary ? kBg : kTextPrimary, letterSpacing: 2)),
-              ]),
+          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(icon, color: primary ? kBg : Colors.white, size: 16),
+            const SizedBox(width: 6),
+            Text(label,
+                style: techno(12,
+                    color: primary ? kBg : kTextPrimary, letterSpacing: 2)),
+          ]),
         ),
       );
 }

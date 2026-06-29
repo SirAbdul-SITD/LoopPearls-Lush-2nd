@@ -1,151 +1,111 @@
 // lib/game/game_state.dart
-import 'dart:math';
 import 'package:flutter/material.dart';
+import 'masyu_level.dart';
 import '../utils/preferences.dart';
 import '../utils/audio_manager.dart';
 
-/// Flood-It. The board fills from the top-left cell: pick a color and the
-/// connected region of the start color expands to absorb adjacent matching
-/// cells. Flood the entire board to one color within the move limit.
-///
-/// The move budget is derived from a greedy solve of the generated board
-/// (greedy "pick the color that captures the most cells" needs at most a
-/// known number of moves), then given some slack — so the level is always
-/// winnable within the limit.
+/// Player draws loop segments between adjacent cell centers. Each undirected
+/// edge is absent, drawn, or crossed. Win when the drawn edges exactly match
+/// the solution loop.
 class GameState extends ChangeNotifier {
-  int currentLevelIndex = 0;
-  late int size;
-  late int colorCount;
-  late String difficulty;
-  late List<int> cells; // color index per cell
+  late MasyuLevel level;
+  final Map<String, int> edges = {}; // "a-b" -> 1 drawn, 2 crossed
+  late Set<String> _solution;
   int moves = 0;
-  int moveLimit = 0;
   bool isComplete = false;
-  bool failed = false;
   int stars = 0;
+  int currentLevelIndex = 0;
   bool initialized = false;
+
+  int get n => level.n;
 
   void loadLevel(int index) {
     currentLevelIndex = index;
-    if (index < 50) {
-      size = 8; colorCount = 4; difficulty = 'Easy';
-    } else if (index < 100) {
-      size = 11; colorCount = 5; difficulty = 'Medium';
-    } else {
-      size = 14; colorCount = 6; difficulty = 'Hard';
-    }
-
-    final rng = Random(index * 5851 + index * 23 + 11);
-    cells = List<int>.generate(size * size, (_) => rng.nextInt(colorCount));
-
-    // compute greedy solution length, then allow slack
-    final greedy = _greedySolve(List<int>.from(cells));
-    moveLimit = greedy + (difficulty == 'Easy'
-        ? 3
-        : difficulty == 'Medium'
-            ? 4
-            : 5);
-
+    level = LevelGenerator.generate(index);
+    _solution = level.solutionEdges();
+    edges.clear();
     moves = 0;
     isComplete = false;
-    failed = false;
     stars = 0;
     initialized = true;
     notifyListeners();
   }
 
-  List<int> _neighbors(int i, int s) {
-    final r = i ~/ s, c = i % s;
-    return [
-      if (r > 0) i - s,
-      if (r < s - 1) i + s,
-      if (c > 0) i - 1,
-      if (c < s - 1) i + 1,
-    ];
+  int get parMoves => _solution.length;
+
+  String key(int a, int b) => a < b ? '$a-$b' : '$b-$a';
+  int edgeState(int a, int b) => edges[key(a, b)] ?? 0;
+
+  bool adjacent(int a, int b) {
+    final dr = (a ~/ n - b ~/ n).abs();
+    final dc = (a % n - b % n).abs();
+    return dr + dc == 1;
   }
 
-  /// Region connected to cell 0 sharing its color.
-  Set<int> _region(List<int> g) {
-    final start = g[0];
-    final seen = <int>{0};
-    final stack = [0];
-    while (stack.isNotEmpty) {
-      final cur = stack.removeLast();
-      for (final n in _neighbors(cur, size)) {
-        if (!seen.contains(n) && g[n] == start) {
-          seen.add(n);
-          stack.add(n);
-        }
-      }
+  void tapEdge(int a, int b) {
+    if (isComplete || !adjacent(a, b)) return;
+    final k = key(a, b);
+    final cur = edges[k] ?? 0;
+    final next = (cur + 1) % 3;
+    if (next == 0) {
+      edges.remove(k);
+    } else {
+      edges[k] = next;
     }
-    return seen;
-  }
-
-  void _apply(List<int> g, int color) {
-    final region = _region(g);
-    for (final i in region) {
-      g[i] = color;
-    }
-  }
-
-  bool _allSame(List<int> g) {
-    final first = g[0];
-    return g.every((c) => c == first);
-  }
-
-  /// Greedy: repeatedly pick the color that grows the region most.
-  int _greedySolve(List<int> g) {
-    int count = 0;
-    int guard = 0;
-    while (!_allSame(g) && guard < size * size * 2) {
-      guard++;
-      final cur = g[0];
-      int best = -1, bestGain = -1;
-      for (int color = 0; color < colorCount; color++) {
-        if (color == cur) continue;
-        final copy = List<int>.from(g);
-        _apply(copy, color);
-        final gain = _region(copy).length;
-        if (gain > bestGain) {
-          bestGain = gain;
-          best = color;
-        }
-      }
-      _apply(g, best);
-      count++;
-    }
-    return count;
-  }
-
-  int get floodedCount => _region(cells).length;
-
-  void pick(int color) {
-    if (isComplete || failed) return;
-    if (color == cells[0]) return;
-    _apply(cells, color);
     moves++;
-    AudioManager.instance.playFlood();
-    if (_allSame(cells)) {
-      isComplete = true;
-      stars = _calcStars();
-      AudioManager.instance.playComplete();
-      Preferences.instance.saveLevelResult(currentLevelIndex, stars);
-    } else if (moves >= moveLimit) {
-      failed = true;
-    }
+    AudioManager.instance.playDraw();
+    _check();
     notifyListeners();
   }
 
-  int get movesLeft => moveLimit - moves;
+  int drawnDegree(int cell) {
+    int d = 0;
+    for (final nb in _nbrs(cell)) {
+      if (edgeState(cell, nb) == 1) d++;
+    }
+    return d;
+  }
+
+  List<int> _nbrs(int i) {
+    final r = i ~/ n, c = i % n;
+    return [
+      if (r > 0) i - n,
+      if (r < n - 1) i + n,
+      if (c > 0) i - 1,
+      if (c < n - 1) i + 1,
+    ];
+  }
+
+  int get pearlCount => level.pearls.length;
+
+  void _check() {
+    final drawn = <String>{};
+    edges.forEach((k, v) {
+      if (v == 1) drawn.add(k);
+    });
+    if (drawn.length != _solution.length) return;
+    for (final e in _solution) {
+      if (!drawn.contains(e)) return;
+    }
+    isComplete = true;
+    stars = _calcStars();
+    AudioManager.instance.playComplete();
+    Preferences.instance.saveLevelResult(currentLevelIndex, stars);
+  }
 
   int _calcStars() {
-    final left = movesLeft;
-    if (left >= 3) return 3;
-    if (left >= 1) return 2;
+    if (moves <= parMoves) return 3;
+    if (moves <= (parMoves * 1.8).round()) return 2;
     return 1;
   }
 
-  void restartLevel() => loadLevel(currentLevelIndex);
+  void restartLevel() {
+    edges.clear();
+    moves = 0;
+    isComplete = false;
+    stars = 0;
+    notifyListeners();
+  }
 
   void nextLevel() {
     if (currentLevelIndex < 149) loadLevel(currentLevelIndex + 1);

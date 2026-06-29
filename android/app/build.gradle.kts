@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.naumanvpt.huecraft"
+        applicationId = "com.lushy.looppearls"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -33,9 +33,9 @@ android {
     signingConfigs {
         create("release") {
             storeFile = file("key.jks")
-            storePassword = "huecraft"
-            keyAlias = "huecraft"
-            keyPassword = "huecraft"
+            storePassword = "looppearls"
+            keyAlias = "looppearls"
+            keyPassword = "looppearls"
         }
     }
 

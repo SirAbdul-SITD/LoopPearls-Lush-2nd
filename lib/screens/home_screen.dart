@@ -17,12 +17,12 @@ class HomeScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(children: [
           const Spacer(flex: 2),
-          Icon(Icons.format_color_fill_rounded, color: kAccent, size: 80),
+          Icon(Icons.blur_circular_rounded, color: kAccent, size: 82),
           const SizedBox(height: 18),
-          Text('HUECRAFT',
+          Text('LOOP PEARLS',
               style: techno(40, color: kAccent, weight: FontWeight.w900, letterSpacing: 6)),
           const SizedBox(height: 8),
-          Text('FLOOD · FILL · CONQUER', style: techno(11, color: kTextDim, letterSpacing: 4)),
+          Text('WHITE STRAIGHT · BLACK TURNS', style: techno(11, color: kTextDim, letterSpacing: 4)),
           const SizedBox(height: 28),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             _chip(Icons.check_circle_outline, '$completed / $kTotalLevels', kEasyColor),
@@ -68,7 +68,7 @@ class HomeScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
             gradient: primary
-                ? const LinearGradient(colors: [Color(0xFF2FA877), Color(0xFF6CE5B1)])
+                ? const LinearGradient(colors: [Color(0xFF2E9E86), Color(0xFF4FD6B8)])
                 : null,
             color: primary ? null : kSurface,
             borderRadius: BorderRadius.circular(12),

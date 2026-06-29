@@ -1,5 +1,5 @@
-name: huecraft
-description: Huecraft - Flood the whole board into one color in limited moves.
+name: looppearls
+description: Loop Pearls - Draw one loop obeying the white and black pearls.
 publish_to: 'none'
 version: 1.0.0+1
 

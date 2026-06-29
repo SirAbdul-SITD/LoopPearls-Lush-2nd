@@ -63,7 +63,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 36),
           Divider(color: kBorder.withOpacity(0.5)),
           const SizedBox(height: 24),
-          Text('HUECRAFT', style: techno(13, color: kAccent, letterSpacing: 4)),
+          Text('LOOPPEARLS', style: techno(13, color: kAccent, letterSpacing: 4)),
           const SizedBox(height: 6),
           Text('v1.0  ·  150 Levels',
               style: techno(10,

@@ -14,7 +14,7 @@ class AudioManager {
 
   Future<void> init() async {
     try {
-      await _sfx1.setSource(AssetSource('sounds/flood.wav'));
+      await _sfx1.setSource(AssetSource('sounds/draw.wav'));
       await _sfx2.setSource(AssetSource('sounds/complete.wav'));
       _ready = true;
     } catch (_) {}
@@ -36,7 +36,7 @@ class AudioManager {
 
   Future<void> stopMusic() async => _music.stop();
 
-  Future<void> playFlood() async {
+  Future<void> playDraw() async {
     if (!_ready || !_soundOn) return;
     await _sfx1.stop();
     await _sfx1.resume();

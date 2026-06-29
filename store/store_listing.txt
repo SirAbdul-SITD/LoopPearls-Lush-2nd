@@ -1,39 +1,40 @@
 ═══════════════════════════════════════════
-HUECRAFT — PLAY STORE LISTING
-com.naumanvpt.huecraft
+LOOP PEARLS — PLAY STORE LISTING
+com.lushy.looppearls
 ═══════════════════════════════════════════
 
 APP TITLE (max 50 chars):
-Huecraft: Color Flood Puzzle
+Loop Pearls: Masyu Logic
 
 SHORT DESCRIPTION (max 80 chars):
-Flood the whole board into one color before you run out of moves! 150 levels.
+Draw one loop: straight through white pearls, turning on black. 150 puzzles!
 
 FULL DESCRIPTION:
-🌊 FLOOD. FILL. CONQUER. 🌊
+⚪ WHITE STRAIGHT. BLACK TURNS. ⚫
 
-Starting from the top-left corner, pick a color and your region spreads to swallow every touching cell of that color. Chain your choices to flood the entire board into a single color — before your moves run out.
+Thread a single closed loop through the grid that obeys the pearls. At a white pearl the loop runs straight through but must bend just before or after. At a black pearl the loop must turn — and run straight on both sides. Read the pearls and find the one loop that satisfies them all.
 
-🎨 HOW TO PLAY
-• Tap a color from the palette
-• Your corner region floods to that color, absorbing neighbors
-• Plan colors that capture the most cells each turn
-• Flood the whole board within the move limit to win
+🔄 HOW TO PLAY
+• Tap between two cells to draw a loop segment
+• Tap again to cross it out, once more to clear
+• White pearl: go straight through, turn in a neighbor cell
+• Black pearl: turn here, go straight on both sides
+• Form one single closed loop to win
 
 ✨ FEATURES
-• 150 levels: 8×8, 11×11 and 14×14 boards with 4–6 colors
-• Every level is winnable within its limit — budget set from a real solve
-• Move counter and live region highlight
-• Bright, satisfying color visuals and a chill ambient soundtrack
-• Haptic feedback
+• 150 levels: 6×6, 8×8 and 10×10 grids
+• Every puzzle is built from a real loop — always solvable
+• Elegant white and black pearl tokens
+• Glowing jade loop on an ink-wash board
+• Calming soundtrack and haptic feedback
 • 100% offline, no ads, no purchases, zero data collection
 
-🧠 THE FLOOD-IT CLASSIC
-A pure strategy game of expansion and efficiency. Easy to learn, genuinely tricky to master — every move counts, and the tightest solves feel brilliant.
+🧠 THE MASYU CLASSIC
+Also known as Masyu or "Pearl Necklace" — one of the most elegant loop puzzles ever designed. Two pearl rules, one loop, endless satisfying deduction.
 
-Flood the board. Conquer the colors. 🌊
+Thread the pearls. Close the loop. ⚪⚫
 
 CATEGORY: Games > Puzzle
 CONTENT RATING: Everyone
 PRICE: Free
-TAGS: flood it, color, fill, flood, strategy, puzzle, brain, expansion, casual, logic
+TAGS: masyu, loop, pearls, logic, puzzle, deduction, lines, brain, japanese, nikoli
